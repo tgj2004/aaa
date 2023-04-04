@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd"
+       default-lazy-init="true">
+
+    <!-- SpringMvc能调用到Spring Spring不能调用到SpringMvc-->
+
+    <!--扫包-->
+    <!--默认是扫所有的 use-default-filters="false"就不是了-->
+    <context:component-scan base-package="Test.a" use-default-filters="false">
+        <!-- 包含只扫这个注解-->
+        <!-- type="annotation"这个是根据注解类型来过滤 type="assignable"这个是根据 类来过滤-->
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/><!-- 这里是包含 -->
+        <context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+    </context:component-scan>
+
+    <!-- 注意：这是前缀 /WEB-INF/JSP/表示WEB_INF下有个JSP文件夹jsp文件存放在jsp文件夹下 有文件夹的话value="/文件夹名/"  -->
+    <!-- 配置视图解析器:就是用来返回界面的 -->
+    <!--InternalResourceViewResolver 默认的视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/JSP/"></property> <!--前缀-->
+        <property name="suffix" value=".jsp"></property><!--后缀-->
+    </bean>
+
+    <!--若将 DispatcherServlet 请求映射配置为 /，则 Spring MVC 将捕获 WEB 容器的所有请求，包括静态资源的请求， SpringMVC 会将他们当成一个普通请求处理，因找不到对应处理器将导致错误-->
+    <!--解决拦截器拦截使用不了静态资源文件 这是一种还有一种在web.xml -->
+    <mvc:default-servlet-handler/>
+
+    <!-- 这个是为了@NumberFormat(pattern ="#,###,###.##")  @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")//主要是限制前台的时间格式-->
+    <!--这里还有一个默认的异常处理器-->
+    <mvc:annotation-driven></mvc:annotation-driven>
+
+
+    <!-- 配置 SessionLocalResolver 根据 Session 中特定的属性确定本地、化类型-->
+    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver"></bean>
+
+
+    <!-- 配置 MultipartResolver  bean中的id一定要叫multipartResolver -->
+    <!--加入架包 commons-fileupload-1.3.1.jar和commons-io-2.2.jar-->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="UTF-8"></property>
+        <property name="maxUploadSize" value="52428800"></property>
+    </bean>
+
+
+    <mvc:interceptors>
+        <!--LocaleChangeInterceptor：从请求参数中获取本次请求对应的本地化类型-->
+        <!--本地化拦截器 在方法执行前会执行在方法执行后会执行-->
+        <bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"></bean>
+    </mvc:interceptors>
+
+
+    <!-- 配置国际化资源文件 -->
+    <bean id="messageSource"
+          class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basename" value="i18n"></property>
+
+        <property name="defaultEncoding" value="utf-8"></property>
+    </bean>
+
+
+    <!--           异常配置有异常就抛出懂啊这个异常界面-->
+    <!--    <bean id="SimpleMappingExceptionResolver"-->
+    <!--          class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">-->
+    <!--        &lt;!&ndash;en是异常的信息&ndash;&gt;-->
+    <!--        <property name="exceptionAttribute" value="dd"></property>-->
+    <!--        &lt;!&ndash;        <property name="exceptionAttribute" value="ca"></property>&ndash;&gt;-->
+    <!--        <property name="exceptionMappings">-->
+    <!--            <props>-->
+    <!--                &lt;!&ndash;异常类型&ndash;&gt;-->
+    <!--                &lt;!&ndash; error返回的界面&ndash;&gt;-->
+    <!--                <prop key="java.lang.Exception">error</prop>-->
+    <!--            </props>-->
+    <!--        </property>-->
+    <!--    </bean>-->
+
+
+
+    <!--fastdfs 配置扫描包-->
+    <context:component-scan base-package="com.github.tobato.fastdfs.service,com.github.tobato.fastdfs.domain"/>
+    <!--配置连接管理器-->
+    <bean id="trackerConnectionManager" class="com.github.tobato.fastdfs.conn.TrackerConnectionManager">
+        <constructor-arg name="pool" ref="fdfsConnectionPool">
+        </constructor-arg>
+
+
+        <!--配置fastDFS tracker 服务器 ip:port 地址-->
+        <property name="trackerList">
+            <list>
+                <value>192.168.31.99:22122</value>
+                <value>192.168.31.69:22122</value>
+            </list>
+        </property>
+    </bean>
+    <!--fastdfs 配置连接池-->
+    <bean id="fdfsConnectionPool" class="com.github.tobato.fastdfs.conn.FdfsConnectionPool">
+        <!--注入连接池配置-->
+        <constructor-arg name="config" >
+            <bean class="com.github.tobato.fastdfs.conn.ConnectionPoolConfig"/>
+        </constructor-arg>
+        <!--注入连接池工厂-->
+        <constructor-arg name="factory" >
+            <bean class="com.github.tobato.fastdfs.conn.PooledConnectionFactory"/>
+        </constructor-arg>
+    </bean>
+
+
+
+
+</beans>

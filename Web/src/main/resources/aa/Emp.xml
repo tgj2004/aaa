@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--数据库的映射文件-->
+<!--映射那个类就用那个  用接口和xml这里就映射接口类-->
+<mapper namespace="Test.a.c.Emps">
+
+    <resultMap id="empcs" type="Test.a.d.Emp">
+        <id property="id" column="id"></id>
+        <result property="name" column="name"></result>
+        <result property="sex" column="sex"></result>
+        <result column="touxiang" property="touxiang"></result>
+        <result property="gongzi" column="gongzi"></result>
+        <result property="time" column="time"></result>
+        <result property="email" column="email"></result>
+        <result property="txzm" column="txzm"></result>
+        <association property="bumen" javaType="Test.a.d.Bumen" >
+            <id property="id1" column="id1"></id>
+            <result property="name1" column="name1"></result>
+            <result property="addr" column="addr"></result>
+        </association>
+
+    </resultMap>
+
+
+    <!-- 根据id查询-->
+    <select id="queryid" parameterType="java.lang.Integer"  resultType="Test.a.d.Emp">
+        select * from emp
+        <where>
+            <if test="id!=0 and id!=null">
+                id=#{id}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询所有-->
+    <select id="getall" resultMap="empcs" parameterType="Test.a.d.page">
+        select * from emp as e,bumen as b
+        <where>
+            e.bumen_id=b.id1
+        </where>
+        <!--在EmpDy里面把开始下标设置到这个td属性里面了这里td就是开始下表pageSize是每页几条-->
+        limit #{td},#{pageSize};
+    </select>
+
+
+
+
+    <!--查询所有数据数量-->
+    <select id="getcount" resultType="java.lang.Long" parameterType="Test.a.d.page">
+        select count(*) from emp;
+    </select>
+
+
+    <!--根据ID删除-->
+    <delete id="deleteid" parameterType="java.lang.Integer">
+        delete  from emp
+        <where>
+            <if test="id!=null and id!=0">
+                id=#{id}
+            </if>
+        </where>
+    </delete>
+
+
+    <!--  根据ID修改-->
+    <update id="updateemp" parameterType="Test.a.d.Emp">
+        update  emp set email=#{email},gongzi=#{gongzi},name=#{name},sex=#{sex},time=#{time},touxiang=#{touxiang},txzm=#{txzm},bumen_id=#{bumen.id1} where id=#{id};
+
+    </update>
+
+    <!--新增-->
+    <insert id="adds" parameterType="Test.a.d.Emp">
+        insert  into emp(email,name,gongzi,sex,time,touxiang,txzm,bumen_id)values(#{email},#{name},#{gongzi},#{sex},#{time},#{touxiang},#{txzm},#{bumen.id1});
+    </insert>
+
+
+</mapper>

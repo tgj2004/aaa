@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--数据库的映射文件-->
+<!--映射那个类就用那个  用接口和xml这里就映射接口类-->
+<mapper namespace="Test.a.c.Bemen">
+
+<!--  查询所有部门-->
+<select id="queryAll" resultType="Test.a.d.Bumen">
+    select*from bumen;
+</select>
+
+<!-- 根据ID查询部门-->
+    <select id="queryBYid" resultType="Test.a.d.Bumen">
+        select*from bumen
+    <where>
+        <if test="id!=0 and id!=null">
+            id1=#{id};
+        </if>
+    </where>
+    </select>
+
+</mapper>

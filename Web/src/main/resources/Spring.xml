@@ -1,0 +1,64 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		https://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+<!--扫包的功能-->
+    <context:component-scan base-package="Test.a">
+        <!--排除-->
+        <!-- type="annotation"这个是根据注解类型来过滤 type="assignable"这个是根据类来过滤-->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <!--排除异常注解-->
+        <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+    </context:component-scan>
+
+
+    <!--导入外部资源文件-->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+    <!--配置C3p0的数据源-->
+    <!--链接池-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="user" value="${User}"></property>
+        <property name="password" value="${password}"></property>
+        <property name="jdbcUrl" value="${Url}"></property>
+        <property name="driverClass" value="${Driver}"></property>
+
+    </bean>
+
+    <!--创建sqlSessionFactory,生成sqlSession-->
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+       <!--配置数据源-->
+    <property name="dataSource" ref="dataSource"></property>
+        <!--实体类-->
+     <property name="typeAliasesPackage" value="Test.a.d"></property>
+        <!--扫实体类的映射文件-->
+    <property name="mapperLocations" value="classpath:aa/*.xml"></property>
+ </bean>
+
+
+<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+<!--扫码接口包-->
+<property name="basePackage" value="Test.a.c"></property>
+    <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+ </bean>
+
+    <!-- 配置jdbc事务 这里不配置也能使用-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+
+
+    <!-- 配置支持基于注解是事务配置 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+
+
+
+
+</beans>
